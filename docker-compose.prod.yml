@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+
+  backend:
+    env_file:
+      - .env.prod
+    environment:
+      - LLM_MODE=api
+      - DEBUG=False
+
+  frontend:
+    environment:
+      - NODE_ENV=production

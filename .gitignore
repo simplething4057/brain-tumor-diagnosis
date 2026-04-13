@@ -1,0 +1,73 @@
+# ── Python 가상환경 ─────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── 환경변수 (API 키 보호) ───────────────────────
+.env
+.env.dev
+.env.prod
+*.env
+
+# ── 모델 가중치 (용량 문제) ──────────────────────
+models/*.pth
+models/*.pt
+models/*.pkl
+models/**/*.pth
+models/**/*.pt
+models/**/*.pkl
+
+# ── 데이터 (용량 문제) ───────────────────────────
+data/
+*.nii
+*.nii.gz
+
+# ── RAG 벡터 DB ──────────────────────────────────
+rag_docs/chroma_db/
+rag_docs/*.pdf
+
+# ── Node.js ──────────────────────────────────────
+node_modules/
+dist/
+build/
+.next/
+*.log
+npm-debug.log*
+
+# ── Docker ───────────────────────────────────────
+.docker/
+
+# ── IDE ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── 학습 로그 / 체크포인트 ───────────────────────
+runs/
+checkpoints/
+wandb/
+*.log
+
+# ── 잘못 생성된 폴더 ─────────────────────────────
+frontend/{src/
+frontend/{src
+
+# ── 모델 가중치 빈 placeholder ───────────────────
+models/monai_best.pth
+models/segmamba_best.pth
+models/normalization_stats.pkl
+
+# ── 배치 파일 ────────────────────────────────────
+backend/setup_venv.bat

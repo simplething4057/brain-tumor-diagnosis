@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  backend:
+    environment:
+      - LLM_MODE=local
+    volumes:
+      - ./backend:/app   # 핫리로드용 마운트
+
+volumes:
+  ollama_data:
