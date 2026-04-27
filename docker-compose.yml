@@ -29,7 +29,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-btuser}:${POSTGRES_PASSWORD:-btpass}@db:5432/${POSTGRES_DB:-brain_tumor}
     volumes:
       - ./backend:/app
-      - ../LLM/brain-tumor-3class:/ml_pipeline:ro
+      - ./ml_pipeline:/ml_pipeline:ro
       - upload_data:/app/uploads
       - chroma_data:/app/chroma_db
       # brats 패키지가 호스트 Docker 데몬에 접근하기 위한 소켓 마운트

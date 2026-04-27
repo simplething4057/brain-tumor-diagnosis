@@ -41,3 +41,9 @@ logs/
 
 # Docker 볼륨 데이터
 pgdata/
+
+# ML 파이프라인 — 대용량 파일 제외 (모델 가중치, 원본 데이터, 세그멘테이션 결과)
+ml_pipeline/models/weights/*.pkl
+ml_pipeline/data/
+ml_pipeline/outputs/segmentation/
+ml_pipeline/outputs/predictions/

@@ -9,7 +9,7 @@ meta_classifier.pkl 재학습 스크립트
   python retrain_classifier.py
 
 완료 후 생성 파일:
-  ../LLM/brain-tumor-3class/models/weights/meta_classifier.pkl
+  ml_pipeline/models/weights/meta_classifier.pkl
 """
 import sys
 import pickle
@@ -21,11 +21,11 @@ from sklearn.metrics import classification_report
 
 # ── brain-tumor-3class 경로 결정 ──────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).parent          # Brain-tumor-diagnosis 폴더
-BT3CLASS_DIR = SCRIPT_DIR.parent / "LLM" / "brain-tumor-3class"
+BT3CLASS_DIR = SCRIPT_DIR / "ml_pipeline"
 
 if not BT3CLASS_DIR.exists():
     print(f"[오류] 폴더를 찾을 수 없음: {BT3CLASS_DIR}")
-    print("      BT3CLASS_DIR 변수를 실제 경로로 수정해주세요.")
+    print("      ml_pipeline/ 폴더가 Brain-tumor-diagnosis 루트에 있어야 합니다.")
     sys.exit(1)
 
 # ★ 핵심: src.classifier.meta_classifier 를 임포트할 수 있도록 sys.path 등록
@@ -67,7 +67,7 @@ def load_features() -> pd.DataFrame:
 def main():
     print("=" * 60)
     print("  meta_classifier.pkl 재학습")
-    print(f"  brain-tumor-3class: {BT3CLASS_DIR}")
+    print(f"  ml_pipeline: {BT3CLASS_DIR}")
     print(f"  저장 경로: {SAVE_PATH}")
     print("=" * 60)
 
