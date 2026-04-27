@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+backend/venv/
+backend/.venv/
+*.egg-info/
+.eggs/
+
+# 환경 변수 (민감 정보)
+.env
+backend/.env
+!.env.example
+
+# 런타임 데이터 (대용량, git 불필요)
+backend/uploads/
+backend/chroma_db/
+backend/outputs/
+uploads/
+chroma_db/
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 로그
+*.log
+logs/
+
+# Docker 볼륨 데이터
+pgdata/

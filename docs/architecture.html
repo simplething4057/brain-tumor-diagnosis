@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Brain Tumor 3-Class — Architecture</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      padding: 40px 24px;
+      min-width: 1100px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 36px;
+    }
+
+    /* ── 최상단 흐름 화살표 ── */
+    .flow-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+    .flow-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      background: #e2e8f0;
+      border-radius: 20px;
+      padding: 4px 14px;
+    }
+    .flow-arrow {
+      width: 60px;
+      height: 2px;
+      background: #94a3b8;
+      position: relative;
+    }
+    .flow-arrow::after {
+      content: '';
+      position: absolute;
+      right: -1px; top: -4px;
+      border: 5px solid transparent;
+      border-left: 8px solid #94a3b8;
+    }
+
+    /* ── 컬럼 레이아웃 ── */
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .col-header {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 0 12px;
+      letter-spacing: 0.2px;
+    }
+
+    /* ── 카드 ── */
+    .card {
+      border-radius: 10px;
+      border: 1.5px solid;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      letter-spacing: 0.3px;
+    }
+    .card-body {
+      padding: 8px 12px 10px;
+    }
+    .process-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+    .process-item:last-child { margin-bottom: 0; }
+    .badge {
+      flex-shrink: 0;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 1px 5px;
+      margin-top: 1px;
+      letter-spacing: 0.3px;
+    }
+    .process-text {
+      font-size: 11px;
+      color: #334155;
+      line-height: 1.5;
+    }
+    .process-sub {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 1px;
+    }
+
+    /* ── 컬럼별 색상 ── */
+    /* Frontend — 파랑 */
+    .col-fe .col-header { color: #1d4ed8; }
+    .col-fe .card { border-color: #bfdbfe; background: #fff; }
+    .col-fe .card-title { background: #dbeafe; color: #1e40af; }
+    .col-fe .badge { background: #dbeafe; color: #1e40af; }
+
+    /* Backend — 보라 */
+    .col-be .col-header { color: #7c3aed; }
+    .col-be .card { border-color: #ddd6fe; background: #fff; }
+    .col-be .card-title { background: #ede9fe; color: #6d28d9; }
+    .col-be .badge { background: #ede9fe; color: #6d28d9; }
+
+    /* DL/ML — 초록 */
+    .col-ai .col-header { color: #15803d; }
+    .col-ai .card { border-color: #bbf7d0; background: #fff; }
+    .col-ai .card-title { background: #dcfce7; color: #166534; }
+    .col-ai .badge { background: #dcfce7; color: #166534; }
+
+    /* DB — 주황 */
+    .col-db .col-header { color: #c2410c; }
+    .col-db .card { border-color: #fed7aa; background: #fff; }
+    .col-db .card-title { background: #ffedd5; color: #c2410c; }
+    .col-db .badge { background: #ffedd5; color: #c2410c; }
+
+    /* ── 연결 화살표 영역 ── */
+    .arrows-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 16px;
+      margin: 8px 0 4px;
+    }
+    .arrow-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #64748b;
+    }
+    .arrow-line {
+      flex: 1;
+      height: 1.5px;
+      background: #94a3b8;
+      position: relative;
+      max-width: 60px;
+    }
+    .arrow-line.right::after {
+      content: '';
+      position: absolute;
+      right: -1px; top: -4px;
+      border: 4px solid transparent;
+      border-left: 6px solid #94a3b8;
+    }
+    .arrow-line.left::after {
+      content: '';
+      position: absolute;
+      left: -1px; top: -4px;
+      border: 4px solid transparent;
+      border-right: 6px solid #94a3b8;
+    }
+
+    /* ── 하단 요청 흐름 ── */
+    .flow-section {
+      margin-top: 28px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      padding: 18px 24px;
+    }
+    .flow-section h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 14px;
+    }
+    .flows {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .flow-box {
+      border-radius: 8px;
+      border: 1.5px solid #e2e8f0;
+      overflow: hidden;
+    }
+    .flow-box-title {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      background: #f8fafc;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .flow-steps {
+      padding: 10px 12px;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #475569;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-text {
+      font-size: 11px;
+      color: #334155;
+      line-height: 1.5;
+      padding-top: 1px;
+    }
+    .step-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 3px;
+      padding: 1px 4px;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .tag-fe  { background: #dbeafe; color: #1e40af; }
+    .tag-be  { background: #ede9fe; color: #6d28d9; }
+    .tag-ai  { background: #dcfce7; color: #166534; }
+    .tag-db  { background: #ffedd5; color: #c2410c; }
+    .tag-ext { background: #fce7f3; color: #9d174d; }
+  </style>
+</head>
+<body>
+
+<h1>Brain Tumor 3-Class Diagnosis — System Architecture</h1>
+<p class="subtitle">GLI · MEN · MET 뇌종양 3종 분류 웹 서비스 | 각 프레임워크별 프로세스</p>
+
+<!-- 컬럼 -->
+<div class="columns">
+
+  <!-- ── FRONTEND ── -->
+  <div class="col-fe">
+    <div class="col-header">🖥 Frontend</div>
+
+    <div class="card">
+      <div class="card-title">React 18 + Vite</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">상태</span>
+          <div>
+            <div class="process-text">result, recordId, subjectId, availableModalities 전역 상태 관리</div>
+          </div>
+        </div>
+        <div class="process-item">
+          <span class="badge">렌더</span>
+          <div>
+            <div class="process-text">3패널 레이아웃 (업로드·뷰어·결과) SPA 구성</div>
+          </div>
+        </div>
+        <div class="process-item">
+          <span class="badge">콜백</span>
+          <div>
+            <div class="process-text">nvViewerRef → takeScreenshot() PDF용 3D 이미지 캡처</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tailwind CSS</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">UI</span>
+          <div class="process-text">다크 테마 유틸리티 클래스 기반 스타일링</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">NiiVue</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">렌더</span>
+          <div class="process-text">WebGL 기반 .nii 3D MRI 볼륨 렌더링</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">LUT</span>
+          <div class="process-text">256-entry 컬러맵으로 NCR/ED/ET 레이블 히트맵 표시</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">캡처</span>
+          <div class="process-text">drawScene() → toDataURL() WebGL 빈버퍼 문제 해결</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">jsPDF + html2canvas</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">캡처</span>
+          <div class="process-text">html2canvas로 DOM 캡처 → 한글 깨짐 해결</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">PDF</span>
+          <div class="process-text">1p(3D 영상+결과) · 2p(방사선 보고서) 2페이지 출력</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">axios</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">통신</span>
+          <div class="process-text">multipart/form-data로 .nii 파일 전송<br>predict / report / history API 호출</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BACKEND ── -->
+  <div class="col-be">
+    <div class="col-header">⚙️ Backend</div>
+
+    <div class="card">
+      <div class="card-title">FastAPI + Uvicorn</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">API</span>
+          <div>
+            <div class="process-text">REST 엔드포인트 5개 제공</div>
+            <div class="process-sub">POST /predict · POST /report/{id}<br>GET /files/{id}/{mod} · GET /history</div>
+          </div>
+        </div>
+        <div class="process-item">
+          <span class="badge">DI</span>
+          <div class="process-text">Depends(get_db)로 DB 세션 자동 주입</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">init</span>
+          <div class="process-text">lifespan 이벤트 → init_db() 테이블 자동 생성</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">SQLAlchemy ORM</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">매핑</span>
+          <div class="process-text">PredictionRecord 클래스 ↔ predictions 테이블 자동 매핑</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">세션</span>
+          <div class="process-text">sync driver + run_in_executor() async 래퍼 구조 (Windows 호환)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ChromaDB (Backend 측)</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">검색</span>
+          <div class="process-text">쿼리 임베딩 → 코사인 유사도로 관련 의료 문서 4개 반환</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">필터</span>
+          <div class="process-text">label_filter로 예측 종양 타입 문서만 선택 검색</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">LangChain + Groq API</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">조립</span>
+          <div class="process-text">context(RAG) + 예측값 + 수치 → 프롬프트 조립</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">생성</span>
+          <div class="process-text">llama-3.3-70b → 4섹션 한글 임상 보고서 생성</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">전환</span>
+          <div class="process-text">.env LLM_BACKEND로 Groq ↔ Ollama 전환</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DL / ML / LLM ── -->
+  <div class="col-ai">
+    <div class="col-header">🧠 DL / ML / LLM</div>
+
+    <div class="card">
+      <div class="card-title">SwinUNETR</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">학습</span>
+          <div>
+            <div class="process-text">BraTS 2023 GLI, Kaggle T4×2 GPU</div>
+            <div class="process-sub">62.2M 파라미터 · Dice=0.8828</div>
+          </div>
+        </div>
+        <div class="process-item">
+          <span class="badge">출력</span>
+          <div class="process-text">t1c/t1n/t2f/t2w → NCR/ED/ET 3레이블 seg 마스크</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">brats 패키지 (챌린지 공개 모델)</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">실행</span>
+          <div class="process-text">GLI/MEN/MET 챌린지 1위 모델을 Docker 이미지로 실행</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">분리</span>
+          <div class="process-text">동일 입력을 3개 전문 모델에 통과 → 서로 다른 seg 출력</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Random Forest (meta_classifier.pkl)</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">입력</span>
+          <div class="process-text">GLI/MEN/MET seg → nibabel로 21차원 특징 벡터 추출</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">분류</span>
+          <div class="process-text">200개 트리 투표 → GLI/MEN/MET + 확률 출력</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">성능</span>
+          <div class="process-text">Acc 0.870 · Macro-F1 0.869</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">nibabel</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">로드</span>
+          <div class="process-text">.nii 파일 → numpy 배열 변환</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">계산</span>
+          <div class="process-text">affine 행렬 → 복셀 크기(mm³) · 레이블별 부피 계산</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">sentence-transformers</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">임베딩</span>
+          <div class="process-text">all-MiniLM-L6-v2 → 의료 문서 7개를 384차원 벡터로 변환</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">쿼리</span>
+          <div class="process-text">검색 쿼리도 동일 모델로 임베딩 → ChromaDB 유사도 검색</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DB / Infra ── -->
+  <div class="col-db">
+    <div class="col-header">🗄 DB / Infra</div>
+
+    <div class="card">
+      <div class="card-title">PostgreSQL</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">저장</span>
+          <div>
+            <div class="process-text">예측 결과 · 확률 · 보고서 영구 저장</div>
+            <div class="process-sub">subject_id(UUID) · prediction · confidence<br>gli/men/met_prob · features(JSON) · report(Text)</div>
+          </div>
+        </div>
+        <div class="process-item">
+          <span class="badge">조회</span>
+          <div class="process-text">이력 조회 (최신순 정렬) · 단건 조회 · 보고서 UPDATE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ChromaDB</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">저장</span>
+          <div>
+            <div class="process-text">WHO CNS 의료 문서 7개 벡터 영구 저장</div>
+            <div class="process-sub">gli_def · men_def · met_def<br>mri_features · 3종 보고서 템플릿</div>
+          </div>
+        </div>
+        <div class="process-item">
+          <span class="badge">검색</span>
+          <div class="process-text">코사인 유사도 기반 의미 검색 (HNSW 인덱스)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Docker Compose</div>
+      <div class="card-body">
+        <div class="process-item">
+          <span class="badge">실행</span>
+          <div class="process-text">backend + PostgreSQL 단일 명령 실행</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">순서</span>
+          <div class="process-text">depends_on + healthcheck → DB 준비 후 백엔드 시작</div>
+        </div>
+        <div class="process-item">
+          <span class="badge">볼륨</span>
+          <div>
+            <div class="process-text">4개 볼륨으로 데이터 영구 보존</div>
+            <div class="process-sub">pgdata · upload_data · chroma_data<br>/ml_pipeline (RF모델·소스코드 공유)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /columns -->
+
+
+<!-- 요청 흐름 -->
+<div class="flow-section">
+  <h2>📡 주요 요청 흐름</h2>
+  <div class="flows">
+
+    <div class="flow-box">
+      <div class="flow-box-title">① seg.nii 업로드 → 예측</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num">1</div>
+          <div class="step-text"><span class="step-tag tag-fe">FE</span>FileUploader에서 seg.nii 선택 → axios multipart 전송</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">2</div>
+          <div class="step-text"><span class="step-tag tag-be">BE</span>routes.py: UUID 생성 → /uploads/{uuid}/seg.nii 저장</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">3</div>
+          <div class="step-text"><span class="step-tag tag-ai">AI</span>predict.py: nibabel 로드 → 21차원 특징 추출 → RF 예측</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">4</div>
+          <div class="step-text"><span class="step-tag tag-db">DB</span>PostgreSQL: predictions 테이블에 결과 INSERT</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">5</div>
+          <div class="step-text"><span class="step-tag tag-fe">FE</span>ResultPanel: GLI 87% 표시 · NiiVue: 3D 렌더링</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-box">
+      <div class="flow-box-title">② 보고서 생성 버튼 클릭</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num">1</div>
+          <div class="step-text"><span class="step-tag tag-fe">FE</span>ResultPanel에서 "보고서 생성" 클릭 → axios POST /report/5</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">2</div>
+          <div class="step-text"><span class="step-tag tag-db">DB</span>PostgreSQL: record_id=5 SELECT → 예측값·수치 조회</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">3</div>
+          <div class="step-text"><span class="step-tag tag-db">DB</span>ChromaDB: "GLI MRI findings" 쿼리 → 관련 문서 4개 반환</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">4</div>
+          <div class="step-text"><span class="step-tag tag-ext">LLM</span>Groq API: context + 수치 → 4섹션 한글 보고서 생성</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">5</div>
+          <div class="step-text"><span class="step-tag tag-db">DB</span>PostgreSQL: report 컬럼 UPDATE</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">6</div>
+          <div class="step-text"><span class="step-tag tag-fe">FE</span>ResultPanel 보고서 렌더링 · jsPDF로 2페이지 PDF 출력</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
