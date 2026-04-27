@@ -12,6 +12,10 @@ GLI(신경교종) / MEN(수막종) / MET(전이성 종양) 3종 분류 + NiiVue 
 
 좌: MRI 파일 업로드 패널 · 중앙: NiiVue 3D 뷰어 (Multi / 3D 뷰 + 종양 히트맵) · 우: 분류 결과 + 방사선 소견 보고서
 
+## 데모 영상
+
+https://github.com/simplething4057/brain-tumor-diagnosis/releases/download/v1.0.0/Brain_Tumor_Diagnosis_Final_2026-04-27_17-35-22.mp4
+
 ## 자동 생성 보고서 샘플 (PDF)
 
 [sample-report.pdf](https://github.com/simplething4057/brain-tumor-3class/raw/main/docs/sample-report.pdf)
