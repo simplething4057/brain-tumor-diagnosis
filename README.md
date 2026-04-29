@@ -242,10 +242,12 @@ docker compose up -d
 
 ```bash
 cd frontend
-npm install
+npm install   # 최초 1회 또는 package.json 변경 후 실행 (node_modules/ 생성)
 npm run dev
-# → http://localhost:3000
+# → http://localhost:5173
 ```
+
+> **`node_modules`는 Git에 포함되지 않습니다.** `npm install`이 `package.json`을 읽어 의존성을 자동으로 설치하므로, 클론 후 반드시 한 번 실행해야 합니다.
 
 ---
 
