@@ -1,6 +1,71 @@
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
 import { generateReport } from "../utils/api";
+
+const SECTION_KEYS = ["촬영 정보", "임상 증상", "MRI 소견", "결론"];
+
+const SECTION_STYLE = {
+  "촬영 정보": { icon: "🔬", color: "text-sky-400",    border: "border-sky-700"    },
+  "임상 증상": { icon: "🩺", color: "text-yellow-400", border: "border-yellow-700" },
+  "MRI 소견": { icon: "🧠", color: "text-indigo-400",  border: "border-indigo-700" },
+  "결론":     { icon: "📌", color: "text-green-400",   border: "border-green-700"  },
+};
+
+function parseReport(text) {
+  // Split on **[섹션명]** headers (with optional surrounding whitespace/newlines)
+  const headerRe = /\*{0,2}\[?(촬영 정보|임상 증상|MRI 소견|결론)\]?\*{0,2}/g;
+  const sections = [];
+  let lastKey = null;
+  let lastIndex = 0;
+
+  for (const m of text.matchAll(headerRe)) {
+    if (lastKey !== null) {
+      sections.push({ key: lastKey, body: text.slice(lastIndex, m.index).trim() });
+    }
+    lastKey = m[1];
+    lastIndex = m.index + m[0].length;
+  }
+  if (lastKey !== null) {
+    sections.push({ key: lastKey, body: text.slice(lastIndex).trim() });
+  }
+
+  // Fallback: return raw text if no sections found
+  if (sections.length === 0) {
+    return [{ key: null, body: text.trim() }];
+  }
+  return sections;
+}
+
+function ReportSection({ sectionKey, body }) {
+  const style = SECTION_STYLE[sectionKey];
+
+  const lines = body.split("\n").filter(l => l.trim() !== "");
+  const isBullet = lines.some(l => /^[\*\-]\s/.test(l.trim()));
+
+  return (
+    <div className={`border-l-2 pl-3 py-0.5 ${style?.border ?? "border-gray-600"}`}>
+      <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${style?.color ?? "text-gray-400"}`}>
+        {style?.icon ?? ""} {sectionKey}
+      </p>
+      {isBullet ? (
+        <ul className="space-y-0.5">
+          {lines.map((l, i) => {
+            const cleaned = l.replace(/^[\*\-]\s+/, "").replace(/\*\*(.*?)\*\*/g, "$1");
+            return (
+              <li key={i} className="flex gap-1.5 text-xs text-gray-300 leading-relaxed">
+                <span className={`mt-0.5 shrink-0 ${style?.color ?? "text-gray-400"}`}>•</span>
+                <span>{cleaned}</span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="text-xs text-gray-300 leading-relaxed">
+          {body.replace(/\*\*(.*?)\*\*/g, "$1")}
+        </p>
+      )}
+    </div>
+  );
+}
 
 const LABEL_INFO = {
   GLI: {
@@ -262,8 +327,16 @@ export default function ResultPanel({ result, recordId, captureViewerImage }) {
                 </button>
               </div>
             </div>
-            <div className="prose prose-sm prose-invert max-w-none text-xs leading-relaxed text-gray-300">
-              <ReactMarkdown>{report}</ReactMarkdown>
+            <div className="space-y-3">
+              {parseReport(report).map((sec, i) =>
+                sec.key ? (
+                  <ReportSection key={i} sectionKey={sec.key} body={sec.body} />
+                ) : (
+                  <p key={i} className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {sec.body}
+                  </p>
+                )
+              )}
             </div>
           </div>
         )}

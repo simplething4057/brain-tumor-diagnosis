@@ -83,7 +83,7 @@ MRI 4채널(T1C · T1N · T2F · T2W)을 업로드하면 BraTS 패키지가 Dock
 
 **GPU 환경 영향**
 
-BraTS Docker 알고리즘은 CUDA GPU에 최적화되어 있습니다. GPU 없이 CPU만 사용하는 환경에서는 세그멘테이션 컨테이너 1개당 10~30분, 3개 합산 30분~1시간 이상 소요될 수 있습니다. GPU가 있는 경우 `configs/config.yaml`에서 `cuda_devices: "0"`으로 변경하면 수분 내로 완료됩니다.
+BraTS Docker 알고리즘은 CUDA GPU에 최적화되어 있습니다. GPU 없이 CPU만 사용하는 환경에서는 세그멘테이션 컨테이너 1개당 10~30분, 3개 합산 최소 30분, 길게는 1시간 이상 소요될 수 있습니다. GPU가 있는 경우 `configs/config.yaml`에서 `cuda_devices: "0"`으로 변경하면 수분 내로 완료됩니다.
 
 ```yaml
 # configs/config.yaml
