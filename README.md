@@ -173,6 +173,7 @@ npm run dev
 | t2f | `.nii` / `.nii.gz` | no-seg 모드 | T2 FLAIR (필수) |
 | t2w | `.nii` / `.nii.gz` | no-seg 모드 | T2 Weighted |
 | seg | `.nii` / `.nii.gz` | seg 모드 | BraTS 형식 세그멘테이션 마스크 |
+
 **seg 모드**: seg 파일 하나만으로 즉시 예측 가능.  
 **no-seg 모드**: t1c + t2f 최소 조합 권장. 없는 채널은 인접 채널로 자동 대체.
 
