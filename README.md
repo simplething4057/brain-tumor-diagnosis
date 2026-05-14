@@ -54,7 +54,7 @@ GLI(신경교종) 케이스의 **[촬영 정보] → [임상 증상] → [MRI �
   - **seg 모드**: 세그멘테이션 마스크(seg.nii.gz) 업로드 → 즉시 분류 (수초)
   - **no-seg 모드**: MRI 4채널(T1C/T1N/T2F/T2W) 업로드 → BraTS Docker 자동 세그멘테이션 → 분류 (GPU: 수분 / CPU: 30분 이상)
 - **NiiVue 3D 뷰어**: Axial / Multi / 3D 뷰, 모달리티 전환, 세그멘테이션 오버레이
-- **RAG 보고서 생성**: WHO CNS 2021 가이드라인 기반 ChromaDB + Ollama LLM
+- **RAG 보고서 생성**: WHO CNS 2021 가이드라인 기반 ChromaDB + Ollama/Groq LLM
 - **PDF 내보내기**: MRI 3D 영상(1페이지) + 방사선 소견 보고서(2페이지)
 - **예측 이력**: PostgreSQL 저장 및 이력 조회
 
@@ -62,31 +62,7 @@ GLI(신경교종) 케이스의 **[촬영 정보] → [임상 증상] → [MRI �
 
 ## 5. 실행 방법
 
-### 본인 PC (재실행 시)
-
-이미 세팅이 완료된 상태라면 두 가지만 실행하면 됩니다.
-
-```bash
-# 터미널 1 — DB + 백엔드
-docker compose up -d
-
-# 터미널 2 — 프론트엔드
-cd frontend
-npm run dev
-```
-
-브라우저에서 `http://localhost:5173` 접속. Ollama는 Windows 백그라운드 서비스로 자동 실행됩니다.
-
-| 서비스 | URL | 비고 |
-|--------|-----|------|
-| 프론트엔드 | `http://localhost:5173` | React 개발 서버 |
-| 백엔드 API | `http://localhost:8000` | FastAPI |
-| API 문서 (Swagger) | `http://localhost:8000/docs` | 자동 생성 |
-| PostgreSQL | `localhost:5432` | DB 직접 접속 시 |
-
----
-
-### 새 PC (최초 설치)
+### 최초 설치 시
 
 #### 사전 설치 항목
 
@@ -161,6 +137,30 @@ npm run dev
 > `npm install`이 `package.json`을 읽어 의존성을 자동으로 설치하므로, 클론 후 반드시 한 번 실행해야 합니다.
 
 브라우저에서 `http://localhost:5173` 접속합니다.
+
+---
+
+### 재실행 시
+
+이미 세팅이 완료된 상태라면 두 가지만 실행하면 됩니다.
+
+```bash
+# 터미널 1 — DB + 백엔드
+docker compose up -d
+
+# 터미널 2 — 프론트엔드
+cd frontend
+npm run dev
+```
+
+브라우저에서 `http://localhost:5173` 접속. Ollama는 Windows 백그라운드 서비스로 자동 실행됩니다.
+
+| 서비스 | URL | 비고 |
+|--------|-----|------|
+| 프론트엔드 | `http://localhost:5173` | React 개발 서버 |
+| 백엔드 API | `http://localhost:8000` | FastAPI |
+| API 문서 (Swagger) | `http://localhost:8000/docs` | 자동 생성 |
+| PostgreSQL | `localhost:5432` | DB 직접 접속 시 |
 
 ---
 
@@ -393,7 +393,7 @@ docker-compose.yml PostgreSQL 15 + FastAPI 백엔드
 [seg 모드]  seg.nii.gz → GLI/MEN/MET 폴더에 동일 파일 복사
 [no-seg]   BraTS Docker × 3 → GLI/MEN/MET 각각 다른 세그멘테이션 생성
     ↓
-feature_extractor → 21차원 피처 (부피·ET비율·부종비율·괴사비율·병변수 × 3종)
+feature_extractor → 21차원 피처 (복셀수·부피·ET비율·부종비율·괴사비율·병변수·종양유무 × 3종)
     ↓
 RandomForest meta_classifier.pkl → GLI / MEN / MET 분류 + 확률
     ↓
@@ -561,7 +561,7 @@ Brain-tumor-diagnosis/
 
 **BraTS 초기 실행**: no-seg 첫 실행 시 BraTS Docker 이미지(수 GB)를 자동 다운로드합니다.
 
-**LLM 메모리**: `gemma2:2b` 1.6GB / `gemma2:latest` 6.4GB 필요. WSL2 메모리 12GB 이상 권장.
+**LLM 메모리**: `gemma2:2b` 1.6GB / `gemma2:latest` 5.4GB 필요. WSL2 메모리 12GB 이상 권장.
 
 **Docker-in-Docker**: no-seg 모드는 호스트 Docker 소켓이 필요하므로 일부 클라우드 환경에서 동작하지 않을 수 있습니다.
 
